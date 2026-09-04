@@ -1,10 +1,13 @@
 # TreeMasks
+<img width="1045" height="490" alt="image" src="https://github.com/user-attachments/assets/0f113f32-6507-44d5-999f-9025d7f1ca74" />
 
 Command-line tool that reads Arma Reforger (Enfusion World Editor) `.layer` files,
 finds every placed tree, and renders one top-down 8-bit grayscale PNG mask per tree
 category (by default `coniferous.png` and `deciduous.png`). Optionally it also writes
 the forest floor between the crowns per forest type and a combined, inverted
-"not forest" mask.
+"not forest" mask. 
+
+This tool is meant to be used with new terrains as it re-paints whole map. Made by my friend and his friend(claude :) ), but if you need support with usage feel free to reach out to me on official Arma discord
 
 ```
 .layer files -> parser -> classifier -> coordinate mapper -> renderer -> PNG masks
@@ -17,7 +20,6 @@ know where the forests of a map are.
 
 * Python 3.10 or newer, 64-bit. The default 31501 x 31501 canvases need about 1 GB of
   RAM per tree category.
-* numpy, Pillow, PyYAML, psutil and scipy. The install commands below pull them in.
 
 ## Install
 
@@ -58,7 +60,10 @@ All masks are 8-bit grayscale PNGs of `output.width` x `output.height` pixels, b
 | --- | --- | --- |
 | `<category>.png` | filled circles at every rendered tree of that category | always |
 | `<category>_gaps.png` or `<category>_area.png` | forest floor between the crowns, or the solid forest area | extent step on |
-| `combined_inverse.png` | every mask above OR-ed together and inverted | `combined_inverse.enabled` |
+| `combined_inverse.png` | every mask together and inverted | `combined_inverse.enabled` |
+
+
+
 
 ## Configuration (`config.yaml`)
 
