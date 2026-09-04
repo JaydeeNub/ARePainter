@@ -1,0 +1,153 @@
+# TreeMasks configuration.
+#
+# Most settings can be overridden per run with command-line flags (see
+# `python -m treemasks --help`). Settings without a flag (x_axis, y_axis, trees, classifier,
+# parser.entity_classes, extent.tile, extent.suffix) can only be changed in this file.
+#
+# How a tree gets from a .layer file to a pixel:
+#   1. parser       reads every entity whose class is in parser.entity_classes and works out
+#                   its world position as (X, Y, Z) metres. Enfusion uses X = east,
+#                   Y = up (height), Z = north.
+#   2. classifier   matches the asset name against `trees` (which category) and
+#                   classifier.size_regex (which size 0-3); classifier.exclude drops stumps,
+#                   fallen trunks and similar props.
+#   3. mapper       takes two of the three position components (coordinate_system.x_axis /
+#                   y_axis), drops trees outside `world`, scales the rest to `output` pixels
+#                   and applies flip_x / flip_y.
+#   4. renderer     paints a filled circle of radius rendering.marker_sizes[size] into
+#                   <category>.png.
+#   5. extent and combined_inverse are optional post-processing steps on the finished masks.
+
+world:
+  # The rectangle of terrain, in metres, that the images cover. Trees outside it are counted
+  # as "out of bounds" in the summary and skipped; this is never an error.
+  #   min_x / max_x: range of the position component picked by coordinate_system.x_axis
+  #                  (default: file X = east).
+  #   min_y / max_y: range of the position component picked by coordinate_system.y_axis
+  #                  (default: file Z = north).
+  # NOTE: "y" here means the image's vertical axis, NOT the file's Y (height) component.
+  # Before any flip, min_x maps to column 0 and max_x to the last column; likewise min_y to
+  # row 0 (top) and max_y to the last row (bottom).
+  min_x: 0
+  max_x: 32000
+  min_y: 0
+  max_y: 32000
+
+output:
+  # Size of every generated PNG in pixels. One pixel covers (max_x - min_x) / (width - 1)
+  # metres horizontally, so 32000 m over 31501 px is about 1.016 m per pixel.
+  # Memory: each 8-bit canvas needs width x height bytes (31501 x 31501 is about 0.99 GB).
+  # The tool keeps one canvas per tree category in RAM unless --low-memory is used.
+  width: 31501
+  height: 31501
+  directory: output          # folder the PNGs are written to (created if missing)
+  compress_level: 4          # PNG zlib level 0-9. 0 = no compression (fast, huge files),
+                             # 9 = smallest files but slowest. 4 is a sensible middle ground.
+
+coordinate_system:
+  # Which components of an entity's position become the image axes, and which way they run.
+  #
+  # x_axis / y_axis: index into the position vector written in the .layer file as
+  # `coords X Y Z`. 0 = X (east), 1 = Y (height), 2 = Z (north).
+  #   x_axis: the component that runs left -> right across the image (columns).
+  #   y_axis: the component that runs top -> bottom down the image (rows).
+  # The two must be different. For a top-down map keep 0 and 2; choosing 1 would give a
+  # side-view projection instead. These also decide what world.min_y / max_y refer to.
+  x_axis: 0
+  y_axis: 2
+  #
+  # flip_x / flip_y: mirror the finished image. Without any flip, small world values sit at
+  # the left / top edge and large ones at the right / bottom edge, which means north (Z)
+  # would grow DOWN the image.
+  #   flip_y: true -> world max_y (the north edge) becomes the top row, so north is up like
+  #                   on a map and like Reforger's own terrain textures.
+  #   flip_x: true -> world max_x (the east edge) becomes the left-most column, mirroring
+  #                   east and west.
+  # Change these if a generated mask looks mirrored against the game's satellite or mask
+  # textures. Both flips can be overridden with --flip-x / --no-flip-x and --flip-y / --no-flip-y.
+  flip_x: false
+  flip_y: true
+
+rendering:
+  marker_value: 255          # gray level (1-255) painted for tree markers; the background is 0
+  # Marker radius in pixels for each tree size category. The category is the digit that
+  # classifier.size_regex extracts from the asset name (t_picea_abies_3dw.et -> 3); it is a
+  # class label, NOT a radius. Overlapping markers simply merge into one blob.
+  marker_sizes:
+    0: 0                     # must stay 0: size-0 trees are never drawn (they are the very small
+                             # trees; leaving them out keeps more variety in the forest)
+    1: 2                     # small trees:  radius 2 px (marker 5 px across)
+    2: 4                     # medium trees: radius 4 px (marker 9 px across)
+    3: 6                     # large trees:  radius 6 px (marker 13 px across)
+
+extent:
+  # Optional "forest extent" step, run after the plain masks are written. It turns the canopy
+  # (a texture given in `mask`, or else this tool's own rendered tree markers) into the solid
+  # forest area: narrow gaps and enclosed holes between crowns count as inside the forest,
+  # while the outer edge keeps the canopy's own jagged outline. Every forest pixel is assigned
+  # to the category of the nearest rendered tree, so one extra file per category is written:
+  #   mode gaps -> <category>_gaps.png : the forest floor between the crowns (the inverted
+  #                                      canopy, but only inside the forest area)
+  #   mode area -> <category>_area.png : the solid forest area itself
+  enabled: true              # true runs the step using the rendered markers as the canopy
+  mode: gaps                 # "gaps" or "area" (see above)
+  mask: null                 # optional canopy texture, e.g. sample_mask.png. Must be exactly
+                             # output.width x output.height pixels. Giving one also enables the step.
+  threshold: 128             # `mask` pixels with a value >= threshold count as canopy
+                             # (1 = any non-black pixel, 255 = only pure white)
+  close_radius: 5            # notches and channels narrower than about 2x this many px are closed
+                             # and count as inside the forest (0 = off)
+  max_hole: 64               # enclosed holes up to this many px across count as inside the
+                             # forest; larger clearings stay outside (0 = fill no holes)
+  max_distance: 50           # forest pixels farther than this many px from any rendered tree are
+                             # left unpainted. Keep it above max_hole / 2 plus the usual tree
+                             # spacing, otherwise the middle of large filled holes is lost.
+  tile: 1024                 # processing tile size in px: larger is faster but uses more RAM (min 64)
+  suffix: null               # file-name suffix for the extra masks; null = "_gaps" or "_area"
+                             # depending on `mode`
+  orientation: output        # how the `mask` texture is oriented:
+                             #   "output": like the finished images (after flip_x / flip_y)
+                             #   "render": like an un-flipped render (min_x at left, min_y at top)
+
+combined_inverse:
+  # One extra PNG: every output mask (the plain category masks and, when the extent step is
+  # on, the extent masks plus the forest area itself) OR-ed together and then hard-inverted.
+  # Pixels painted in any mask become 0, so whole forests are black; pixels painted nowhere
+  # become rendering.marker_value. Same size and orientation as the other masks. Useful as a
+  # "not forest" layer for placing other content.
+  enabled: true
+  filename: combined_inverse.png   # written inside output.directory
+
+parser:
+  file_pattern: "*.layer"    # files picked up when --input is a directory (searched recursively)
+  entity_classes:            # only entities of these Enfusion classes are tree candidates;
+    - Tree                   # [] = inspect every entity class (slower, more unknowns reported)
+
+classifier:
+  # Regex applied to the lower-cased asset file name; it must define a named `size` group.
+  # It matches "_<digit><letters>" followed only by letter-only suffixes (e.g. _aut) before
+  # ".et", so t_picea_abies_3dw.et -> 3, t_betula_pendula_0_aut.et -> 0 and
+  # t_picea_abies_stump_01.et -> no size (skipped).
+  size_regex: '_(?P<size>\d)[a-z]*(?:_[a-z]+)*\.et$'
+  # Assets matching these globs are never rendered, even when a `trees` category matches
+  # them. Use it for non-canopy props that share a tree's name prefix.
+  exclude:
+    - "*_fallen*"
+    - "*_stump_*"
+    - "*_stem_*"
+    - "*_branch_*"
+
+
+# Tree categories. Each key becomes one output file (<key>.png); each entry is a glob matched
+# against the lower-cased asset file name. Assets that match no category are reported as
+# "unknown" (list them with --report-unknown) and skipped.
+trees:
+  coniferous:
+    - "t_picea_abies_*"
+    - "t_piceaabies_*"        # mis-named spruce variant present in real data (t_piceaabies_3f.et)
+    - "t_larix_decidua_*"
+  deciduous:
+    - "t_betula_pendula_*"
+    - "t_sorbus_aucuparia_*"
+    - "t_tilia_cordata_*"
+    - "t_carpinus_betulus_*"

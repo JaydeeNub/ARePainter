@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "treemasks"
+version = "0.1.0"
+description = "Render top-down PNG tree masks from Arma Reforger (Enfusion) .layer files"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "Pillow>=10",
+    "PyYAML>=6",
+    "psutil>=5.9",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+treemasks = "treemasks.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["treemasks*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
