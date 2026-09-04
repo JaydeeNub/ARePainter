@@ -66,6 +66,8 @@ All masks are 8-bit grayscale PNGs of `output.width` x `output.height` pixels, b
 
 Now rename these png files to ground materials you want to use (Grass_03_aut.png, ...) and import them from AR Workbench. 
 
+<img width="786" height="682" alt="image" src="https://github.com/user-attachments/assets/52a59124-1f27-4f3e-8ca3-23550924bc64" />
+
 
 
 ## Configuration (`config.yaml`)
