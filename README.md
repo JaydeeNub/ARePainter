@@ -9,7 +9,7 @@ category (by default `coniferous.png` and `deciduous.png`). Optionally it also w
 the forest floor between the crowns per forest type and a combined, inverted
 "not forest" mask. 
 
-This tool is meant to be used with new terrains as it re-paints whole map. Made by my friend and his friend(claude :) ), but if you need support with usage feel free to reach out to me on official Arma discord
+**This tool is meant to be used with new terrains as it re-paints whole map.** Made by my friend and his friend(claude :) ), but if you need support with usage feel free to reach out to me on official Arma discord
 
 ```
 .layer files -> parser -> classifier -> coordinate mapper -> renderer -> PNG masks
@@ -64,6 +64,7 @@ All masks are 8-bit grayscale PNGs of `output.width` x `output.height` pixels, b
 | `<category>_gaps.png` or `<category>_area.png` | forest floor between the crowns, or the solid forest area | extent step on |
 | `combined_inverse.png` | every mask together and inverted | `combined_inverse.enabled` |
 
+Now rename these png files to ground materials you want to use (Grass_03_aut.png, ...) and import them from AR Workbench. 
 
 
 
