@@ -22,7 +22,7 @@ know where the forests of a map are.
 ## Install
 
 ```
-git clone <this repository>
+git clone https://github.com/JaydeeNub/ARePainter.git
 cd TreeMasks
 pip install .                          # installs the `treemasks` command
 ```
@@ -34,7 +34,7 @@ adds pytest.
 ## Usage
 
 ```
-treemasks --input MyWorld.layer                             # uses ./config.yaml, writes to ./output
+treemasks --input yourLayerName.layer                       # uses ./config.yaml, writes to ./output
 treemasks --input ./layers --output-dir masks               # folders are searched recursively
 treemasks --input a.layer b.layer --marker-size 3=9 --report-unknown
 treemasks --input ./layers --low-memory --json-report masks/report.json
@@ -42,7 +42,7 @@ treemasks --help
 ```
 
 `.layer` files are the text files the World Editor saves for each layer of a world, in
-the world's folder next to its `.ent` file. Point `--input` at one file, several files or
+the world's folder next to its `.ent` file. Copy `.layer` file into this repository folder or Point `--input` at one file, several `.layer` files or
 a folder; folders are searched recursively for `parser.file_pattern` (`*.layer`).
 
 A configuration file is required. `config.yaml` in the current directory is used by
@@ -248,8 +248,6 @@ forest), so no extra canvas is allocated. With `--low-memory` one running union 
 ```
 pip install -e .[dev]
 python -m pytest                                    # unit and end-to-end tests on synthetic layer data
-python scripts/inspect_layer.py MyWorld.layer       # dump the block structure of a layer file
-python scripts/make_demo_canopy.py demo.png ...     # synthetic canopy texture for trying the extent step
 ```
 
 Modules: `treemasks/parser.py`, `classifier.py`, `coordinate_mapper.py`, `renderer.py`,
