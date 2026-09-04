@@ -1,5 +1,7 @@
 # TreeMasks
+
 <img width="1045" height="490" alt="image" src="https://github.com/user-attachments/assets/0f113f32-6507-44d5-999f-9025d7f1ca74" />
+
 
 Command-line tool that reads Arma Reforger (Enfusion World Editor) `.layer` files,
 finds every placed tree, and renders one top-down 8-bit grayscale PNG mask per tree
