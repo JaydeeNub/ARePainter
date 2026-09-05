@@ -38,11 +38,11 @@ adds pytest.
 ## Usage
 
 ```
-treemasks --input yourLayerName.layer                       # uses ./config.yaml, writes to ./output
-treemasks --input ./layers --output-dir masks               # folders are searched recursively
-treemasks --input a.layer b.layer --marker-size 3=9 --report-unknown
-treemasks --input ./layers --low-memory --json-report masks/report.json
-treemasks --help
+python treemasks --input yourLayerName.layer                       # uses ./config.yaml, writes to ./output
+python treemasks --input ./layers --output-dir masks               # folders are searched recursively
+python treemasks --input a.layer b.layer --marker-size 3=9 --report-unknown
+python treemasks --input ./layers --low-memory --json-report masks/report.json
+python treemasks --help
 ```
 
 `.layer` files are the text files the World Editor saves for each layer of a world, in
